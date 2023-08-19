@@ -229,15 +229,10 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
 
+	glDepthFunc(GL_LEQUAL);
+	glDisable(GL_DEPTH_TEST);
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders( "../shaders/VertexShader.glsl", "../shaders/FragmentShader.glsl" );
@@ -278,22 +273,7 @@ int main( void )
 		normals.push_back(spherenormals[i]);
 	}
 
-	// Load it into a VBO
-	GLuint vertexbuffer;
-	GLuint uvbuffer;
-	GLuint normalbuffer;
 
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size()* sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-	
-	glGenBuffers(1, &normalbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 
 	// Get a handle for our "LightPosition" uniform
 	glUseProgram(programID);
@@ -380,6 +360,13 @@ int main( void )
 	}
 	initPosition();
 
+
+
+	GLuint VertexArrayID;
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+
 	auto start = high_resolution_clock::now();
 	do{
 		// Clear the screen
@@ -404,10 +391,10 @@ int main( void )
 		}
 
 
-			//Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
+		//Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
 		
 		glUseProgram(skyID);
-		glDepthFunc(GL_LEQUAL);
+		
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);
 		// We make the mat4 into a mat3 and then a mat4 again in order to get rid of the last row and column
@@ -424,20 +411,33 @@ int main( void )
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyMapTexture);
 		// glActiveTexture(GL_TEXTURE0);
-		glDisable(GL_DEPTH_TEST);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		glEnable(GL_DEPTH_TEST);
 		// glDepthMask(GL_TRUE);
 		glBindVertexArray(0);
 		// Switch back to the normal depth function
 		glDepthFunc(GL_LESS);
-		// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				// Use our shader
+		// Use our shader
 		glUseProgram(programID);
-		// 1rst attribute buffer : vertices
+
+
+		glGenVertexArrays(1, &VertexArrayID);
+		glBindVertexArray(VertexArrayID);
+
+		glGenBuffers(1, &vertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size()* sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+		glGenBuffers(1, &uvbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+		
+		glGenBuffers(1, &normalbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
 		glVertexAttribPointer(
 			0,                  // attribute
 			3,                  // size
@@ -479,7 +479,6 @@ int main( void )
 		glBindTexture(GL_TEXTURE_2D,Texture);
 		// Set our "myTextureSampler" sampler to use Texture Unit 0
 		glUniform1i(TextureID, 0);
-
 
 
 		// Use our shader
@@ -548,11 +547,6 @@ int main( void )
 			// Draw the triangles !
 			glDrawArrays(GL_TRIANGLES, spherestart, spheresize );
 		}
-
-		// Dark blue background
-		// glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		//Re-clear the screen for real rendering
-		// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)	
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -576,7 +570,7 @@ int main( void )
 	glDeleteProgram(skyID);
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &Texture);
-	// glDeleteTextures(1, &skyTexture);
+	glDeleteTextures(1,&skyMapTexture);
 	glDeleteVertexArrays(1, &VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
