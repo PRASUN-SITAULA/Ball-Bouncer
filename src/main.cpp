@@ -500,7 +500,6 @@ int main( void )
 		glEnableVertexAttribArray(2);
 		// compute Inputs
 		computeInputs();
-		std::cout<<"help me";
 
 
 
@@ -561,7 +560,6 @@ int main( void )
 
 			// Draw the triangles !
 			glDrawArrays(GL_TRIANGLES, spherestart, spheresize );
-			std::cout<<"hellp";
 		}
 
 
