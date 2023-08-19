@@ -230,9 +230,7 @@ int main( void )
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
 
-	glDepthFunc(GL_LEQUAL);
-	glDisable(GL_DEPTH_TEST);
-
+	
 
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders( "../shaders/VertexShader.glsl", "../shaders/FragmentShader.glsl" );
@@ -307,7 +305,6 @@ int main( void )
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
-	
 
 	std::string skyCubeMaps[6] =
 	{
@@ -367,10 +364,25 @@ int main( void )
 	GLuint uvbuffer;
 	GLuint normalbuffer;
 
+
+
+
 	auto start = high_resolution_clock::now();
+
+	glGenVertexArrays(1, &VertexArrayID);
+	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(1, &uvbuffer);
+	glGenBuffers(1, &normalbuffer);
+
+
+
 	do{
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glDisable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+
 
 		camera_worldposition = glm::vec3(radius*cos(theta)*cos(phi),radius*sin(phi),radius*sin(theta)*cos(phi));
 
@@ -407,6 +419,7 @@ int main( void )
 		
 		// where an object is present (a depth of 1.0f will always fail against any object's depth value)
 		// glDepthMask(GL_FALSE);
+
 		glBindVertexArray(skyVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyMapTexture);
@@ -421,18 +434,18 @@ int main( void )
 		glUseProgram(programID);
 
 
-		glGenVertexArrays(1, &VertexArrayID);
+		
 		glBindVertexArray(VertexArrayID);
 
-		glGenBuffers(1, &vertexbuffer);
+		
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size()* sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
-		glGenBuffers(1, &uvbuffer);
+		
 		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 		glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 		
-		glGenBuffers(1, &normalbuffer);
+		
 		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
@@ -480,7 +493,6 @@ int main( void )
 		// Set our "myTextureSampler" sampler to use Texture Unit 0
 		glUniform1i(TextureID, 0);
 
-
 		// Use our shader
 		glUseProgram(programID);
 		glEnableVertexAttribArray(0);
@@ -488,6 +500,9 @@ int main( void )
 		glEnableVertexAttribArray(2);
 		// compute Inputs
 		computeInputs();
+		std::cout<<"help me";
+
+
 
 		// draw the plane
 		{
@@ -546,7 +561,12 @@ int main( void )
 
 			// Draw the triangles !
 			glDrawArrays(GL_TRIANGLES, spherestart, spheresize );
+			std::cout<<"hellp";
 		}
+
+
+
+
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
